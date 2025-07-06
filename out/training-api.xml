@@ -1,0 +1,621 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>training-api</name>
+    </assembly>
+    <members>
+        <member name="T:TrainingApi.Controllers.AdminController">
+            <summary>
+            Controller for admin operations including user management and teacher approvals
+            </summary>
+        </member>
+        <member name="M:TrainingApi.Controllers.AdminController.GetAllUsers">
+            <summary>
+            Get a list of all users in the system
+            </summary>
+            <returns>List of all users</returns>
+            <response code="200">Returns the list of users</response>
+            <response code="401">Unauthorized access</response>
+            <response code="403">Forbidden (not an admin)</response>
+        </member>
+        <member name="M:TrainingApi.Controllers.AdminController.GetUser(System.String)">
+            <summary>
+            Get detailed information about a specific user
+            </summary>
+            <param name="id">User ID</param>
+            <returns>User details</returns>
+            <response code="200">Returns the user details</response>
+            <response code="401">Unauthorized access</response>
+            <response code="403">Forbidden (not an admin)</response>
+            <response code="404">User not found</response>
+        </member>
+        <member name="M:TrainingApi.Controllers.AdminController.GetPendingTeachers">
+            <summary>
+            Get a list of teacher accounts pending approval
+            </summary>
+            <returns>List of pending teacher accounts</returns>
+            <response code="200">Returns the list of pending teachers</response>
+            <response code="401">Unauthorized access</response>
+            <response code="403">Forbidden (not an admin)</response>
+        </member>
+        <member name="T:TrainingApi.Controllers.CreateUserRequest">
+            <summary>
+            Request to create a new user
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Controllers.CreateUserRequest.Email">
+            <summary>
+            Email address for the new user
+            </summary>
+            <example>user@example.com</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.CreateUserRequest.Password">
+            <summary>
+            Password for the new user (minimum 6 characters)
+            </summary>
+            <example>SecurePassword123</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.CreateUserRequest.DisplayName">
+            <summary>
+            Display name for the user
+            </summary>
+            <example>John Doe</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.CreateUserRequest.Role">
+            <summary>
+            Role assigned to the user
+            </summary>
+            <example>Teacher</example>
+        </member>
+        <member name="T:TrainingApi.Controllers.AuthController">
+            <summary>
+            Controller for user authentication operations including registration and login
+            </summary>
+        </member>
+        <member name="M:TrainingApi.Controllers.AuthController.RegisterStudent(TrainingApi.Controllers.RegisterStudentRequest)">
+            <summary>
+            Register a new student account
+            </summary>
+            <param name="request">Student registration information</param>
+            <returns>Registration confirmation with user ID</returns>
+            <response code="200">Registration successful</response>
+            <response code="400">Invalid registration data</response>
+        </member>
+        <member name="M:TrainingApi.Controllers.AuthController.RegisterTeacher(TrainingApi.Controllers.RegisterTeacherRequest)">
+            <summary>
+            Register a new teacher account (requires admin approval)
+            </summary>
+            <param name="request">Teacher registration information</param>
+            <returns>Registration confirmation with approval pending status</returns>
+            <response code="200">Registration submitted successfully</response>
+            <response code="400">Invalid registration data</response>
+        </member>
+        <member name="M:TrainingApi.Controllers.AuthController.Login(TrainingApi.Controllers.LoginRequest)">
+            <summary>
+            User login with Firebase token
+            </summary>
+            <param name="request">Login request with Firebase ID token</param>
+            <returns>User information and role</returns>
+            <response code="200">Login successful</response>
+            <response code="400">Invalid token</response>
+            <response code="404">User not found</response>
+        </member>
+        <member name="M:TrainingApi.Controllers.AuthController.AdminLogin(TrainingApi.Controllers.AdminLoginRequest)">
+            <summary>
+            Admin login with additional security verification
+            </summary>
+            <param name="request">Admin login request with Firebase ID token and admin code</param>
+            <returns>Admin user information</returns>
+            <response code="200">Admin login successful</response>
+            <response code="400">Invalid token or admin code</response>
+            <response code="403">Not an admin account</response>
+            <response code="404">User not found</response>
+        </member>
+        <member name="T:TrainingApi.Controllers.RegisterStudentRequest">
+            <summary>
+            Student registration request data
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Controllers.RegisterStudentRequest.Email">
+            <summary>
+            Email address (will be used for login)
+            </summary>
+            <example>student@example.com</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.RegisterStudentRequest.Password">
+            <summary>
+            Password (minimum 6 characters)
+            </summary>
+            <example>SecurePassword123</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.RegisterStudentRequest.DisplayName">
+            <summary>
+            Optional display name (if not provided, will use email username)
+            </summary>
+            <example>John Student</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.RegisterStudentRequest.Year">
+            <summary>
+            Current academic year
+            </summary>
+            <example>1</example>
+        </member>
+        <member name="T:TrainingApi.Controllers.RegisterTeacherRequest">
+            <summary>
+            Teacher registration request data
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Controllers.RegisterTeacherRequest.Email">
+            <summary>
+            Email address (will be used for login)
+            </summary>
+            <example>teacher@example.com</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.RegisterTeacherRequest.Password">
+            <summary>
+            Password (minimum 6 characters)
+            </summary>
+            <example>SecurePassword123</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.RegisterTeacherRequest.DisplayName">
+            <summary>
+            Optional display name (if not provided, will use email username)
+            </summary>
+            <example>Jane Teacher</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.RegisterTeacherRequest.Department">
+            <summary>
+            Department of the teacher
+            </summary>
+            <example>Mathematics</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.RegisterTeacherRequest.Qualification">
+            <summary>
+            Qualification of the teacher
+            </summary>
+            <example>PhD in Mathematics</example>
+        </member>
+        <member name="T:TrainingApi.Controllers.LoginRequest">
+            <summary>
+            Login request data
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Controllers.LoginRequest.IdToken">
+            <summary>
+            Firebase ID token
+            </summary>
+            <example>eyJhbGciOiJSUzI1NiIsImtpZCI6...</example>
+        </member>
+        <member name="T:TrainingApi.Controllers.AdminLoginRequest">
+            <summary>
+            Admin login request data
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Controllers.AdminLoginRequest.IdToken">
+            <summary>
+            Firebase ID token
+            </summary>
+            <example>eyJhbGciOiJSUzI1NiIsImtpZCI6...</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.AdminLoginRequest.AdminCode">
+            <summary>
+            Admin verification code
+            </summary>
+            <example>AdminSecretCode123</example>
+        </member>
+        <member name="T:TrainingApi.Controllers.SetupController">
+            <summary>
+            Controller for system setup operations
+            </summary>
+        </member>
+        <member name="M:TrainingApi.Controllers.SetupController.CreateFirstAdmin(TrainingApi.Controllers.CreateFirstAdminRequest)">
+            <summary>
+            Create the first admin user in the system (can only be used once)
+            </summary>
+            <param name="request">Admin setup information including setup key</param>
+            <returns>Admin creation confirmation with admin code</returns>
+            <response code="200">Admin created successfully</response>
+            <response code="400">Invalid setup key or admin already exists</response>
+        </member>
+        <member name="T:TrainingApi.Controllers.CreateFirstAdminRequest">
+            <summary>
+            Request to create the first admin user
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Controllers.CreateFirstAdminRequest.SetupKey">
+            <summary>
+            Setup key from configuration
+            </summary>
+            <example>SecureSetupKey123456</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.CreateFirstAdminRequest.Email">
+            <summary>
+            Email address for the admin
+            </summary>
+            <example>admin@example.com</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.CreateFirstAdminRequest.Password">
+            <summary>
+            Password for the admin (minimum 6 characters)
+            </summary>
+            <example>SecureAdminPassword123</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.CreateFirstAdminRequest.DisplayName">
+            <summary>
+            Display name for the admin
+            </summary>
+            <example>System Administrator</example>
+        </member>
+        <member name="T:TrainingApi.Controllers.FirstAdminResponse">
+            <summary>
+            Response for successful first admin creation
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Controllers.FirstAdminResponse.Message">
+            <summary>
+            Success message
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Controllers.FirstAdminResponse.UserId">
+            <summary>
+            Admin user ID
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Controllers.FirstAdminResponse.AdminCode">
+            <summary>
+            Admin verification code to use for admin login
+            </summary>
+        </member>
+        <member name="T:TrainingApi.Controllers.StudentController">
+            <summary>
+            Controller for student operations including course browsing and enrollment
+            </summary>
+        </member>
+        <member name="M:TrainingApi.Controllers.StudentController.GetAvailableCourses">
+            <summary>
+            Get all available courses that are active
+            </summary>
+            <returns>List of active courses</returns>
+            <response code="200">Returns the list of available courses</response>
+            <response code="401">Unauthorized access</response>
+            <response code="403">Forbidden (not a student)</response>
+        </member>
+        <member name="M:TrainingApi.Controllers.StudentController.GetCourseDetails(System.String)">
+            <summary>
+            Get detailed information about a specific course
+            </summary>
+            <param name="id">Course ID</param>
+            <returns>Course details</returns>
+            <response code="200">Returns the course details</response>
+            <response code="401">Unauthorized access</response>
+            <response code="403">Forbidden (not a student)</response>
+            <response code="404">Course not found</response>
+        </member>
+        <member name="M:TrainingApi.Controllers.StudentController.GetStudentEnrollments">
+            <summary>
+            Get all enrollments of the student
+            </summary>
+            <returns>List of enrollments</returns>
+            <response code="200">Returns the list of enrollments</response>
+            <response code="401">Unauthorized access</response>
+            <response code="403">Forbidden (not a student)</response>
+        </member>
+        <member name="M:TrainingApi.Controllers.StudentController.EnrollInCourse(System.String)">
+            <summary>
+            Request enrollment in a specific course
+            </summary>
+            <param name="courseId">Course ID</param>
+            <returns>Enrollment request confirmation</returns>
+            <response code="200">Enrollment request submitted</response>
+            <response code="400">Invalid request or already enrolled</response>
+            <response code="401">Unauthorized access</response>
+            <response code="403">Forbidden (not a student)</response>
+            <response code="404">Course not found</response>
+        </member>
+        <member name="M:TrainingApi.Controllers.StudentController.GetEnrollmentStatus(System.String)">
+            <summary>
+            Get the status of a specific enrollment
+            </summary>
+            <param name="enrollmentId">Enrollment ID</param>
+            <returns>Enrollment status and course details</returns>
+            <response code="200">Returns the enrollment status and course details</response>
+            <response code="401">Unauthorized access</response>
+            <response code="403">Forbidden (not the owner of the enrollment)</response>
+            <response code="404">Enrollment not found</response>
+        </member>
+        <member name="M:TrainingApi.Controllers.StudentController.GetEnrolledCourses">
+            <summary>
+            Get all courses the student is enrolled in
+            </summary>
+            <returns>List of enrolled courses</returns>
+            <response code="200">Returns the list of enrolled courses</response>
+            <response code="401">Unauthorized access</response>
+            <response code="403">Forbidden (not a student)</response>
+        </member>
+        <member name="T:TrainingApi.Controllers.EnrollmentResponse">
+            <summary>
+            Response for a successful enrollment request
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Controllers.EnrollmentResponse.Id">
+            <summary>
+            Enrollment ID
+            </summary>
+            <example>enrollment-123</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.EnrollmentResponse.Message">
+            <summary>
+            Confirmation message
+            </summary>
+            <example>Enrollment request submitted</example>
+        </member>
+        <member name="T:TrainingApi.Controllers.TeacherController">
+            <summary>
+            Controller for teacher operations including course and lecture management
+            </summary>
+        </member>
+        <member name="M:TrainingApi.Controllers.TeacherController.GetApprovalStatus">
+            <summary>
+            Get the current teacher's approval status
+            </summary>
+            <returns>Current approval status</returns>
+        </member>
+        <member name="M:TrainingApi.Controllers.TeacherController.GetTeacherCourses">
+            <summary>
+            Get all courses created by the authenticated teacher
+            </summary>
+            <returns>List of teacher's courses</returns>
+            <response code="200">Returns the list of courses</response>
+            <response code="400">Teacher account not approved</response>
+            <response code="401">Unauthorized access</response>
+            <response code="403">Forbidden (not a teacher)</response>
+        </member>
+        <member name="M:TrainingApi.Controllers.TeacherController.GetCourse(System.String)">
+            <summary>
+            Get detailed information about a specific course
+            </summary>
+            <param name="id">Course ID</param>
+            <returns>Course details</returns>
+            <response code="200">Returns the course details</response>
+            <response code="400">Teacher account not approved</response>
+            <response code="401">Unauthorized access</response>
+            <response code="403">Forbidden (not a teacher or not your course)</response>
+            <response code="404">Course not found</response>
+        </member>
+        <member name="T:TrainingApi.Controllers.CreateCourseRequest">
+            <summary>
+            Request to create a new course
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Controllers.CreateCourseRequest.Title">
+            <summary>
+            Course title
+            </summary>
+            <example>Introduction to Programming</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.CreateCourseRequest.Description">
+            <summary>
+            Course description
+            </summary>
+            <example>Learn the basics of programming with Python</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.CreateCourseRequest.MaxEnrollment">
+            <summary>
+            Maximum number of students that can enroll
+            </summary>
+            <example>30</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.CreateCourseRequest.StartDate">
+            <summary>
+            Course start date
+            </summary>
+            <example>2023-09-01T00:00:00Z</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.CreateCourseRequest.EndDate">
+            <summary>
+            Course end date
+            </summary>
+            <example>2023-12-15T00:00:00Z</example>
+        </member>
+        <member name="T:TrainingApi.Controllers.UserController">
+            <summary>
+            Controller for user profile operations
+            </summary>
+        </member>
+        <member name="M:TrainingApi.Controllers.UserController.GetCurrentUser">
+            <summary>
+            Get the profile of the currently authenticated user
+            </summary>
+            <returns>User profile with role information</returns>
+            <response code="200">Returns the user profile</response>
+            <response code="401">Unauthorized access</response>
+            <response code="404">User not found</response>
+        </member>
+        <member name="T:TrainingApi.Controllers.UserProfileResponse">
+            <summary>
+            Response with user profile information
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Controllers.UserProfileResponse.User">
+            <summary>
+            User object with role-specific properties
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Controllers.UserProfileResponse.Role">
+            <summary>
+            User role as string
+            </summary>
+            <example>Teacher</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.UserProfileResponse.ApprovalStatus">
+            <summary>
+            Teacher approval status (only for teachers)
+            </summary>
+            <example>Approved</example>
+        </member>
+        <member name="P:TrainingApi.Controllers.UserProfileResponse.IsApproved">
+            <summary>
+            Whether the teacher is approved (only for teachers)
+            </summary>
+            <example>true</example>
+        </member>
+        <member name="T:TrainingApi.Models.AdminUser">
+            <summary>
+            Administrator user model
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Models.AdminUser.IsSuperAdmin">
+            <summary>
+            Indicates if this admin has privileges to create other admins
+            </summary>
+            <example>false</example>
+        </member>
+        <member name="T:TrainingApi.Models.User">
+            <summary>
+            Base user model with common properties
+            </summary>
+        </member>
+        <member name="P:TrainingApi.Models.User.Id">
+            <summary>
+            Unique identifier
+            </summary>
+            <example>firebase-user-id-123</example>
+        </member>
+        <member name="P:TrainingApi.Models.User.Email">
+            <summary>
+            Email address
+            </summary>
+            <example>user@example.com</example>
+        </member>
+        <member name="P:TrainingApi.Models.User.DisplayName">
+            <summary>
+            Display name
+            </summary>
+            <example>John Doe</example>
+        </member>
+        <member name="P:TrainingApi.Models.User.Role">
+            <summary>
+            User role
+            </summary>
+            <example>Student</example>
+        </member>
+        <member name="P:TrainingApi.Models.User.CreatedAt">
+            <summary>
+            Account creation timestamp
+            </summary>
+            <example>2023-01-15T08:30:00Z</example>
+        </member>
+        <member name="P:TrainingApi.Models.User.UpdatedAt">
+            <summary>
+            Last update timestamp
+            </summary>
+            <example>2023-06-20T14:45:00Z</example>
+        </member>
+        <member name="P:TrainingApi.Models.User.LastLogin">
+            <summary>
+            LastLogin timestamp
+            </summary>
+            <example>2023-06-20T14:45:00Z</example>
+        </member>
+        <member name="T:TrainingApi.Models.UserRole">
+            <summary>
+            User roles in the system
+            </summary>
+        </member>
+        <member name="F:TrainingApi.Models.UserRole.Admin">
+            <summary>
+            Administrator with full system access
+            </summary>
+        </member>
+        <member name="F:TrainingApi.Models.UserRole.Teacher">
+            <summary>
+            Teacher who can create and manage courses
+            </summary>
+        </member>
+        <member name="F:TrainingApi.Models.UserRole.Student">
+            <summary>
+            Student who can enroll in courses
+            </summary>
+        </member>
+        <member name="F:TrainingApi.Models.UserRole.User">
+            <summary>
+            Regular user with limited access
+            </summary>
+        </member>
+        <member name="T:TrainingApi.Utilities.DateTimeUtility">
+            <summary>
+            Utility class for DateTime operations
+            </summary>
+        </member>
+        <member name="M:TrainingApi.Utilities.DateTimeUtility.EnsureUtc(System.DateTime)">
+            <summary>
+            Ensures a DateTime is in UTC format
+            </summary>
+            <param name="dateTime">The DateTime to convert</param>
+            <returns>A UTC DateTime</returns>
+        </member>
+        <member name="T:SuccessResponse">
+            <summary>
+            Standard success response
+            </summary>
+        </member>
+        <member name="P:SuccessResponse.Message">
+            <summary>
+            Success message
+            </summary>
+        </member>
+        <member name="P:SuccessResponse.UserId">
+            <summary>
+            User ID (if applicable)
+            </summary>
+        </member>
+        <member name="T:ErrorResponse">
+            <summary>
+            Error response
+            </summary>
+        </member>
+        <member name="P:ErrorResponse.Error">
+            <summary>
+            Error message
+            </summary>
+        </member>
+        <member name="T:LoginResponse">
+            <summary>
+            Login response with user data
+            </summary>
+        </member>
+        <member name="P:LoginResponse.User">
+            <summary>
+            User information
+            </summary>
+        </member>
+        <member name="P:LoginResponse.Role">
+            <summary>
+            User role
+            </summary>
+            <example>Student</example>
+        </member>
+        <member name="T:AdminLoginResponse">
+            <summary>
+            Admin login response
+            </summary>
+        </member>
+        <member name="P:AdminLoginResponse.User">
+            <summary>
+            Admin user information
+            </summary>
+        </member>
+        <member name="P:AdminLoginResponse.Role">
+            <summary>
+            User role (always "Admin")
+            </summary>
+            <example>Admin</example>
+        </member>
+        <member name="P:AdminLoginResponse.IsAdmin">
+            <summary>
+            Flag indicating admin status
+            </summary>
+            <example>true</example>
+        </member>
+    </members>
+</doc>
