@@ -18,28 +18,29 @@ namespace TrainingApi.Services
             InitializeFirebase();
         }
 
+
         private void InitializeFirebase()
         {
             try
             {
                 string projectId = _configuration["Firebase:ProjectId"];
-                string credentialFilePath = ResolveCredentialFilePath();
+                string firebaseJson = Environment.GetEnvironmentVariable("FIREBASE_CREDENTIALS");
 
-                // Set the environment variable for Google Application Credentials
-                Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialFilePath);
+                if (string.IsNullOrWhiteSpace(firebaseJson))
+                    throw new Exception("Environment variable 'FIREBASE_CREDENTIALS' is not set or empty");
 
-                // Initialize Firebase Admin SDK if not already initialized
+                var credential = GoogleCredential.FromJson(firebaseJson);
+
                 if (FirebaseApp.DefaultInstance == null)
                 {
                     FirebaseApp.Create(new AppOptions
                     {
-                        Credential = GoogleCredential.FromFile(credentialFilePath),
+                        Credential = credential,
                         ProjectId = projectId
                     });
                     Console.WriteLine("Firebase Admin SDK initialized successfully.");
                 }
 
-                // Initialize Firestore
                 _firestoreDb = FirestoreDb.Create(projectId);
                 Console.WriteLine($"Firestore initialized for project: {projectId}");
             }
@@ -53,6 +54,42 @@ namespace TrainingApi.Services
                 throw;
             }
         }
+
+        // private void InitializeFirebase()
+        // {
+        //     try
+        //     {
+        //         string projectId = _configuration["Firebase:ProjectId"];
+        //         string credentialFilePath = ResolveCredentialFilePath();
+
+        //         // Set the environment variable for Google Application Credentials
+        //         Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialFilePath);
+
+        //         // Initialize Firebase Admin SDK if not already initialized
+        //         if (FirebaseApp.DefaultInstance == null)
+        //         {
+        //             FirebaseApp.Create(new AppOptions
+        //             {
+        //                 Credential = GoogleCredential.FromFile(credentialFilePath),
+        //                 ProjectId = projectId
+        //             });
+        //             Console.WriteLine("Firebase Admin SDK initialized successfully.");
+        //         }
+
+        //         // Initialize Firestore
+        //         _firestoreDb = FirestoreDb.Create(projectId);
+        //         Console.WriteLine($"Firestore initialized for project: {projectId}");
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Console.WriteLine($"Firebase initialization error: {ex.Message}");
+        //         if (ex.InnerException != null)
+        //         {
+        //             Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+        //         }
+        //         throw;
+        //     }
+        // }
 
 
         private string ResolveCredentialFilePath()
