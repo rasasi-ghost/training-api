@@ -19,64 +19,28 @@ namespace TrainingApi.Services
         }
 
 
-        private void InitializeFirebase()
-        {
-            try
-            {
-                string projectId = _configuration["Firebase:ProjectId"];
-                string firebaseJson = Environment.GetEnvironmentVariable("FIREBASE_CREDENTIALS");
-
-                if (string.IsNullOrWhiteSpace(firebaseJson))
-                    throw new Exception("Environment variable 'FIREBASE_CREDENTIALS' is not set or empty");
-
-                var credential = GoogleCredential.FromJson(firebaseJson);
-
-                if (FirebaseApp.DefaultInstance == null)
-                {
-                    FirebaseApp.Create(new AppOptions
-                    {
-                        Credential = credential,
-                        ProjectId = projectId
-                    });
-                    Console.WriteLine("Firebase Admin SDK initialized successfully.");
-                }
-
-                _firestoreDb = FirestoreDb.Create(projectId);
-                Console.WriteLine($"Firestore initialized for project: {projectId}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Firebase initialization error: {ex.Message}");
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
-                }
-                throw;
-            }
-        }
-
         // private void InitializeFirebase()
         // {
         //     try
         //     {
         //         string projectId = _configuration["Firebase:ProjectId"];
-        //         string credentialFilePath = ResolveCredentialFilePath();
+        //         string firebaseJson = Environment.GetEnvironmentVariable("FIREBASE_CREDENTIALS");
 
-        //         // Set the environment variable for Google Application Credentials
-        //         Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialFilePath);
+        //         if (string.IsNullOrWhiteSpace(firebaseJson))
+        //             throw new Exception("Environment variable 'FIREBASE_CREDENTIALS' is not set or empty");
 
-        //         // Initialize Firebase Admin SDK if not already initialized
+        //         var credential = GoogleCredential.FromJson(firebaseJson);
+
         //         if (FirebaseApp.DefaultInstance == null)
         //         {
         //             FirebaseApp.Create(new AppOptions
         //             {
-        //                 Credential = GoogleCredential.FromFile(credentialFilePath),
+        //                 Credential = credential,
         //                 ProjectId = projectId
         //             });
         //             Console.WriteLine("Firebase Admin SDK initialized successfully.");
         //         }
 
-        //         // Initialize Firestore
         //         _firestoreDb = FirestoreDb.Create(projectId);
         //         Console.WriteLine($"Firestore initialized for project: {projectId}");
         //     }
@@ -94,29 +58,75 @@ namespace TrainingApi.Services
 
         private string ResolveCredentialFilePath()
         {
-            string credentialFileName = _configuration["Firebase:CredentialFile"];
+            const string renderSecretPath = "/firebase-credentials.json";
 
-            // ✅ 1. Check the hardcoded path Render uses for the secret file
-            string renderPath = "/firebase-credentials.json";
-            if (File.Exists(renderPath))
-                return renderPath;
+            if (!File.Exists(renderSecretPath))
+                throw new FileNotFoundException($"Firebase credential file not found at {renderSecretPath}");
 
-            // ✅ 2. Fallbacks for local dev
-            string baseDirPath = Path.Combine(AppContext.BaseDirectory, credentialFileName);
-            if (File.Exists(baseDirPath))
-                return baseDirPath;
-
-            string currentDirPath = Path.Combine(Directory.GetCurrentDirectory(), credentialFileName);
-            if (File.Exists(currentDirPath))
-                return currentDirPath;
-
-            string parentDirPath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, credentialFileName);
-            if (File.Exists(parentDirPath))
-                return parentDirPath;
-
-            throw new FileNotFoundException(
-                $"Firebase credential file '{credentialFileName}' not found. Searched: {renderPath}, {baseDirPath}, {currentDirPath}, {parentDirPath}");
+            return renderSecretPath;
         }
+        private void InitializeFirebase()
+        {
+            try
+            {
+                string projectId = _configuration["Firebase:ProjectId"];
+                string credentialFilePath = ResolveCredentialFilePath();
+
+                // Set the environment variable for Google Application Credentials
+                Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialFilePath);
+
+                // Initialize Firebase Admin SDK if not already initialized
+                if (FirebaseApp.DefaultInstance == null)
+                {
+                    FirebaseApp.Create(new AppOptions
+                    {
+                        Credential = GoogleCredential.FromFile(credentialFilePath),
+                        ProjectId = projectId
+                    });
+                    Console.WriteLine("Firebase Admin SDK initialized successfully.");
+                }
+
+                // Initialize Firestore
+                _firestoreDb = FirestoreDb.Create(projectId);
+                Console.WriteLine($"Firestore initialized for project: {projectId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Firebase initialization error: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
+        }
+
+
+        // private string ResolveCredentialFilePath()
+        // {
+        //     string credentialFileName = _configuration["Firebase:CredentialFile"];
+
+        //     // ✅ 1. Check the hardcoded path Render uses for the secret file
+        //     string renderPath = "/firebase-credentials.json";
+        //     if (File.Exists(renderPath))
+        //         return renderPath;
+
+        //     // ✅ 2. Fallbacks for local dev
+        //     string baseDirPath = Path.Combine(AppContext.BaseDirectory, credentialFileName);
+        //     if (File.Exists(baseDirPath))
+        //         return baseDirPath;
+
+        //     string currentDirPath = Path.Combine(Directory.GetCurrentDirectory(), credentialFileName);
+        //     if (File.Exists(currentDirPath))
+        //         return currentDirPath;
+
+        //     string parentDirPath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, credentialFileName);
+        //     if (File.Exists(parentDirPath))
+        //         return parentDirPath;
+
+        //     throw new FileNotFoundException(
+        //         $"Firebase credential file '{credentialFileName}' not found. Searched: {renderPath}, {baseDirPath}, {currentDirPath}, {parentDirPath}");
+        // }
 
 
         public FirestoreDb GetFirestoreDb() => _firestoreDb;
